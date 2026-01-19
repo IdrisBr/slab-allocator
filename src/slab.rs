@@ -1,5 +1,6 @@
 use core::ptr::NonNull;
 
+#[allow(dead_code)]
 const TAILLE_SLAB: usize = 4096;
 
 pub struct Slab {

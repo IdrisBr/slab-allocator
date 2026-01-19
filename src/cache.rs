@@ -7,6 +7,7 @@ const TAILLE_MIN_OBJET: usize = mem::size_of::<u32>();
 
 pub struct SlabCache {
     taille_objet: usize,
+    #[allow(dead_code)]
     objets_par_slab: usize,
     partiels: Option<NonNull<Slab>>,
     pleins: Option<NonNull<Slab>>,
