@@ -35,7 +35,7 @@ Chaque cache maintient trois listes de slabs :
 ```
 slab-allocator/
 ├── Cargo.toml              # Configuration du projet Rust
-├── Authors.md              # Informations sur l'auteur
+├── Authors.md              # Informations sur les auteurs
 ├── README.md               # Ce fichier
 ├── .gitignore              # Fichiers ignorés par Git
 └── src/
@@ -210,10 +210,11 @@ Ce projet démontre :
 - [Learning Rust with Entirely Too Many Linked Lists](https://rust-unofficial.github.io/too-many-lists/)
 - [Rust `no_std` Documentation](https://docs.rust-embedded.org/book/intro/no-std.html)
 
-## 📝 Auteur
+## 👥 Auteurs
 
-Idris BR  
-Email: idrisbr52@gmail.com  
+**Idris BOUDOUR** - idrisbr52@gmail.com  
+**Ameri Ibrahim GUINDO**
+
 GitHub: [IdrisBr/slab-allocator](https://github.com/IdrisBr/slab-allocator)
 
 ## 📄 Licence
