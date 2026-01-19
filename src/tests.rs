@@ -17,7 +17,7 @@ fn test_slab_basique() {
         let ptr = NonNull::new(buffer.as_mut_ptr()).unwrap();
         let mut slab = Slab::nouveau(ptr, 64, 32);
 
-        let obj1 = slab.allouer().expect("Allocation échouée");
+        let obj1 = slab.allouer().expect("Allocation echouee");
         assert!(!slab.est_vide());
 
         slab.liberer(obj1);
@@ -32,17 +32,13 @@ fn test_allocations_multiples() {
         let ptr = NonNull::new(buffer.as_mut_ptr()).unwrap();
         let mut slab = Slab::nouveau(ptr, 64, 32);
 
-        let mut objets = Vec::new();
-        for _ in 0..10 {
-            if let Some(obj) = slab.allouer() {
-                objets.push(obj);
-            }
+        let mut objets = [None; 10];
+        for i in 0..10 {
+            objets[i] = slab.allouer();
         }
 
-        assert_eq!(objets.len(), 10);
-
-        for obj in objets {
-            slab.liberer(obj);
+        for obj in objets.iter().flatten() {
+            slab.liberer(*obj);
         }
 
         assert!(slab.est_vide());
@@ -58,7 +54,7 @@ fn test_slab_plein() {
         let mut slab = Slab::nouveau(ptr, 64, nb_objets);
 
         for _ in 0..nb_objets {
-            slab.allouer().expect("Allocation échouée");
+            slab.allouer().expect("Allocation echouee");
         }
 
         assert!(slab.est_plein());

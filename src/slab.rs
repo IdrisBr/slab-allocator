@@ -1,10 +1,9 @@
 use core::ptr::NonNull;
-use core::mem;
 
 const TAILLE_SLAB: usize = 4096;
 
 pub struct Slab {
-    prochain: Option<NonNull<Slab>>,
+    pub(crate) prochain: Option<NonNull<Slab>>,
     utilises: usize,
     liste_libre: u32,
     memoire: NonNull<u8>,

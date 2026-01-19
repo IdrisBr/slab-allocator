@@ -1,7 +1,6 @@
 use crate::slab::Slab;
 use core::ptr::NonNull;
 use core::mem;
-use core::alloc::{GlobalAlloc, Layout};
 
 const TAILLE_SLAB: usize = 4096;
 const TAILLE_MIN_OBJET: usize = mem::size_of::<u32>();
@@ -40,8 +39,8 @@ impl SlabCache {
             let slab = slab_ptr.as_mut();
             if let Some(obj) = slab.allouer() {
                 if slab.est_plein() {
-                    self.partiels = (*slab).prochain;
-                    (*slab).prochain = self.pleins;
+                    self.partiels = slab.prochain;
+                    slab.prochain = self.pleins;
                     self.pleins = Some(slab_ptr);
                 }
                 return Some(obj);
@@ -50,8 +49,8 @@ impl SlabCache {
 
         if let Some(mut slab_ptr) = self.vides {
             let slab = slab_ptr.as_mut();
-            self.vides = (*slab).prochain;
-            (*slab).prochain = self.partiels;
+            self.vides = slab.prochain;
+            slab.prochain = self.partiels;
             self.partiels = Some(slab_ptr);
             return slab.allouer();
         }
@@ -109,58 +108,5 @@ impl SlabCache {
 
     pub fn taille_objet(&self) -> usize {
         self.taille_objet
-    }
-}
-
-pub struct AllocateurSlab {
-    cache_8: SlabCache,
-    cache_16: SlabCache,
-    cache_32: SlabCache,
-    cache_64: SlabCache,
-    cache_128: SlabCache,
-    cache_256: SlabCache,
-    cache_512: SlabCache,
-    cache_1024: SlabCache,
-}
-
-impl AllocateurSlab {
-    pub const fn nouveau() -> Self {
-        AllocateurSlab {
-            cache_8: SlabCache::nouveau(8),
-            cache_16: SlabCache::nouveau(16),
-            cache_32: SlabCache::nouveau(32),
-            cache_64: SlabCache::nouveau(64),
-            cache_128: SlabCache::nouveau(128),
-            cache_256: SlabCache::nouveau(256),
-            cache_512: SlabCache::nouveau(512),
-            cache_1024: SlabCache::nouveau(1024),
-        }
-    }
-
-    fn selectionner_cache(&mut self, taille: usize) -> Option<&mut SlabCache> {
-        match taille {
-            0..=8 => Some(&mut self.cache_8),
-            9..=16 => Some(&mut self.cache_16),
-            17..=32 => Some(&mut self.cache_32),
-            33..=64 => Some(&mut self.cache_64),
-            65..=128 => Some(&mut self.cache_128),
-            129..=256 => Some(&mut self.cache_256),
-            257..=512 => Some(&mut self.cache_512),
-            513..=1024 => Some(&mut self.cache_1024),
-            _ => None,
-        }
-    }
-}
-
-unsafe impl GlobalAlloc for AllocateurSlab {
-    /// # Safety
-    /// L'allocateur doit être initialisé et le pointeur retourné doit être libéré avec le même layout
-    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        core::ptr::null_mut()
-    }
-
-    /// # Safety
-    /// `ptr` doit provenir de cet allocateur et `layout` doit correspondre à l'allocation
-    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
     }
 }
