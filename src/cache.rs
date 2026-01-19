@@ -61,49 +61,55 @@ impl SlabCache {
     /// # Safety
     /// `ptr` doit provenir de ce cache et ne plus être utilisé
     pub unsafe fn liberer(&mut self, ptr: NonNull<u8>) {
-        let mut chercher_dans = |liste: &mut Option<NonNull<Slab>>| -> bool {
-            let mut courant = *liste;
-            let mut precedent: Option<NonNull<Slab>> = None;
+        if !self.chercher_et_liberer(ptr, true) {
+            self.chercher_et_liberer(ptr, false);
+        }
+    }
 
-            while let Some(mut slab_ptr) = courant {
-                let slab = slab_ptr.as_mut();
-
-                if slab.objet_appartient(ptr) {
-                    let etait_plein = slab.est_plein();
-                    slab.liberer(ptr);
-
-                    if etait_plein {
-                        if let Some(mut prev) = precedent {
-                            prev.as_mut().prochain = slab.prochain;
-                        } else {
-                            *liste = slab.prochain;
-                        }
-
-                        slab.prochain = self.partiels;
-                        self.partiels = Some(slab_ptr);
-                    } else if slab.est_vide() {
-                        if let Some(mut prev) = precedent {
-                            prev.as_mut().prochain = slab.prochain;
-                        } else {
-                            *liste = slab.prochain;
-                        }
-
-                        slab.prochain = self.vides;
-                        self.vides = Some(slab_ptr);
-                    }
-
-                    return true;
-                }
-
-                precedent = Some(slab_ptr);
-                courant = slab.prochain;
-            }
-            false
+    unsafe fn chercher_et_liberer(&mut self, ptr: NonNull<u8>, dans_pleins: bool) -> bool {
+        let liste = if dans_pleins {
+            &mut self.pleins
+        } else {
+            &mut self.partiels
         };
 
-        if !chercher_dans(&mut self.pleins) {
-            chercher_dans(&mut self.partiels);
+        let mut courant = *liste;
+        let mut precedent: Option<NonNull<Slab>> = None;
+
+        while let Some(mut slab_ptr) = courant {
+            let slab = slab_ptr.as_mut();
+
+            if slab.objet_appartient(ptr) {
+                let etait_plein = slab.est_plein();
+                slab.liberer(ptr);
+
+                if etait_plein {
+                    if let Some(mut prev) = precedent {
+                        prev.as_mut().prochain = slab.prochain;
+                    } else {
+                        *liste = slab.prochain;
+                    }
+
+                    slab.prochain = self.partiels;
+                    self.partiels = Some(slab_ptr);
+                } else if slab.est_vide() {
+                    if let Some(mut prev) = precedent {
+                        prev.as_mut().prochain = slab.prochain;
+                    } else {
+                        *liste = slab.prochain;
+                    }
+
+                    slab.prochain = self.vides;
+                    self.vides = Some(slab_ptr);
+                }
+
+                return true;
+            }
+
+            precedent = Some(slab_ptr);
+            courant = slab.prochain;
         }
+        false
     }
 
     pub fn taille_objet(&self) -> usize {
